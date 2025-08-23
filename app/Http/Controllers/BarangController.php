@@ -66,32 +66,40 @@ class BarangController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Barang $barang)
+    public function edit($id)
     {
-        //
+        $barang = Barang::findOrFail($id);
+        return view('update', compact('barang'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBarangRequest $request, Barang $barang)
+    public function update($id, Request $req)
     {
-        //
+        $fotoPath = null;
+        if ($req->hasFile('foto')) {
+            $fotoPath = $req->file('foto')->store('barangs', 'public');
+        }
+
+        Barang::findOrFail($id)->update([
+            'kategori' => $req->kategori,
+            'nama' => $req->nama,
+            'harga' => $req->harga,
+            'jumlah' => $req->jumlah,
+            'foto' => $fotoPath,
+        ]);
+
+        $barangs = Barang::all();
+        return view('home', compact("barangs"));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Barang $barang)
+    public function destroy($id)
     {
-        // hapus file foto jika ada
-        if ($barang->foto && Storage::disk('public')->exists($barang->foto)) {
-            Storage::disk('public')->delete($barang->foto);
-        }
-
-        // hapus record di database
-        $barang->delete();
-
-        return back()->with('success', 'Barang berhasil dihapus');
+        Barang::destroy($id);
+        return back();
     }
 }
